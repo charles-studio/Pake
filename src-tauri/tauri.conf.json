@@ -1,11 +1,11 @@
 {
-  "productName": "WeRead",
-  "identifier": "com.pake.weread",
+  "productName": "XuZuan",
+  "identifier": "com.pake.xuzuan",
   "version": "1.0.0",
   "app": {
     "withGlobalTauri": true,
     "trayIcon": {
-      "iconPath": "png/weread_512.png",
+      "iconPath": "png/xuzuan_logo.png",
       "iconAsTemplate": false,
       "id": "pake-tray"
     }
