@@ -160,7 +160,7 @@ const config = {
 async function mainBasic(){
   const license = await readLicenseFile();
   if(!license) return;
-  const result = verifyLicense(license);
+  const result = await verifyLicense(license);
   if(result.isValid && !isObserverRunning) {
     const orderTableDom = document.getElementById("pane-0");
     observer.observe(orderTableDom, config);
