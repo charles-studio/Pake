@@ -1,4 +1,26 @@
 console.log('[charles] Injected Successfully.');
+import { readTextFile } from '@tauri-apps/api/fs';
+import { dirname, join } from '@tauri-apps/api/path';
+import { appDir } from '@tauri-apps/api/paths';
+
+const readLicenseFile = async () => {
+  try {
+    // 获取应用程序目录
+    const appDirectory = await appDir();
+    // 获取当前脚本所在目录
+    const currentDir = await dirname(appDirectory);
+    // 构建license文件路径
+    const licenseFilePath = await join(currentDir, 'license');
+    // 读取文件内容
+    const licenseContent = await readTextFile(licenseFilePath);
+    console.log('License文件内容:', licenseContent);
+    return licenseContent;
+  } catch (error) {
+    console.error('读取License文件失败:', error);
+    return null;
+  }
+}
+
 const publicKey = "-----BEGIN PUBLIC KEY-----\n" +
   "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxM0r8D9h3fmXyB2ewiwP\n" +
   "NAa8i10ls8F0gnrwikm3mICQBI+fIBUhRpC2zqx5XgTQXf2onzSbAm4Ls4AFSepQ\n" +
@@ -48,7 +70,7 @@ async function verifySignature(data, signatureBase64, publicKeyBase64) {
   );
 
   return isValid;
-};
+}
 
 function verifyLicense(license){
   try {
@@ -135,8 +157,8 @@ const config = {
 };
 
 
-function mainBasic(){
-  const license = window.localStorage.getItem('license');
+async function mainBasic(){
+  const license = await readLicenseFile();
   if(!license) return;
   const result = verifyLicense(license);
   if(result.isValid && !isObserverRunning) {
@@ -152,34 +174,11 @@ function mainBasic(){
   }
 }
 
-if('#/receiveOrder' === window.location.hash) {
-  const body = document.body;
-  body.addEventListener('dragover', function (e) {
-    e.preventDefault();
-  })
+let intervalRef;
 
-  body.addEventListener('drop', function (e) {
-    const file = e.dataTransfer.files[0];
-    const reader = new FileReader();
-    reader.onerror = function () {
-      console.error("error occurred when read the file...");
-    }
-    reader.onload = function () {
-      const fileContent = reader.result;
-      window.localStorage.setItem('license', fileContent.toString());
-      window.pakeToast('saved the license...');
-      mainBasic();
-    }
-    if (file.name === 'license.txt' && file.type.startsWith('text/')) {
-      try {
-        reader.readAsText(file);
-      } catch (error) {
-        console.error('file handling occurred errors', error);
-      }
-    } else {
-      console.error("file name is not license.txt");
-    }
-  });
-
-  window.setInterval(mainBasic,10*1000);
-}
+document.addEventListener('hashchange', function(e) {
+  if ('#/receiveOrder' === window.location.hash) {
+    mainBasic();
+    intervalRef = window.setInterval(mainBasic, 60 * 1000);
+  }
+});
